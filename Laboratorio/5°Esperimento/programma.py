@@ -43,3 +43,4 @@ plt.ylabel("Ampiezza audio[u.m]")
 plt.show()
 
 
+#ciao
