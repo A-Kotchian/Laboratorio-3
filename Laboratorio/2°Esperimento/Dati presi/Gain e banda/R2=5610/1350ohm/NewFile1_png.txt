@@ -1,0 +1,95 @@
+Model:DS1054Z
+SN:DS1ZA164557976
+Manufacturer:RIGOL TECHNOLOGIES
+Board Ver:0.1.1
+Firmware Ver:0.2.3.7
+BOOT Ver:0.0.1.2
+CPLD Ver:1.1
+SoftWare Ver:00.04.02.SP3
+
+
+	DSO Vertical System 
+CH1:On
+Scale:1.000000V
+Position:0.000000V
+Coupling:AC
+Bandwidth Limit:OFF
+Probe Ratio:1X
+Unit:V
+
+CH2:On
+Scale:2.000000V
+Position:-0.040000V
+Coupling:AC
+Bandwidth Limit:OFF
+Probe Ratio:1X
+Unit:V
+
+CH3:Off
+Scale:1.000000V
+Position:0.000000V
+Coupling:AC
+Bandwidth Limit:OFF
+Probe Ratio:1X
+Unit:V
+
+CH4:Off
+Scale:0.100000V
+Position:-0.209000V
+Coupling:DC
+Bandwidth Limit:OFF
+Probe Ratio:1X
+Unit:V
+
+	DSO Horizontal System
+Delay:Off
+Time Mode:YT
+Time Scale:1.000000e-05s
+Delay Time Scale:5.000000e-03s
+Time Offset:-2.000000e-08s
+Delay Time Offset:0.000000e+00s
+
+	DSO Acquire System
+Acquire Mode:High Resolution
+Memory Depth:60000pts
+Average Num:2
+Sampling Rate:500000000Sa/s
+
+	DSO Trigger System
+Trigger Mode:Edge
+Trigger Source:CH2
+Trigger Edge Slope:Rising
+Trigger Sweep:Auto
+Trigger Coupling:DC
+Trigger Noise Reject:On
+Trigger HoldOff:1.600000e-08s
+
+CH1 Level:0.000000V
+CH2 Level:0.000000V
+CH3 Level:0.000000V
+CH4 Level:0.044000V
+
+Pulse Condition:Positive More
+Pulse High Time:0.000002s
+Pulse Low Time:0.000001s
+
+Slope Condition:Positive More
+Slope High Time:0.000002s
+Slope Low Time:0.000001s
+Slope Win:Win Up Down
+Slope Level1:4.000000V
+Slope Level2:0.000000V
+
+Video Polarity:Positive
+Video Sync:All Lines
+Video Standard:NTSC
+Video Line:1
+
+
+	LA System
+D0~D7  Threshold Type:TTL
+D0~D7  Threshold Value:1.400000V
+D8~D15 Threshold Type:TTL
+D8~D15 Threshold Value:1.400000V
+D0~D7  Status:0000 0000
+D8~D15 Stauts:0000 0000

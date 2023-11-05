@@ -1,0 +1,26 @@
+import soundcard as sc
+import numpy as np
+import matplotlib.pyplot as plt
+
+speakers = sc.all_speakers()
+print("Speaker disponibili: ", speakers, "\n")
+default_speaker = sc.default_speaker()
+print("Speaker selezionato: ", default_speaker, "\n")
+mics = sc.all_microphones()
+print("Microfoni disponibili: ", mics, "\n")
+default_mic = sc.default_microphone()
+print("Microfono selezionato: ", default_mic, "\n")
+data = default_mic.record(samplerate=48000, numframes=48000)
+print("Array acquisito: ")
+print(data)
+print("\n")
+default_speaker.play(data/np.max(data), samplerate=48000)
+print("L'array dei dati registrati è lungo ", len(data))
+
+tempo=np.linspace(0.5,data)
+plt.rcParams["figure.figsize"]=[7.50,3.50]
+plt.rcParams["figure.autolayout"]=True
+
+plt.title("Grafico suono")
+plt.plot(tempo,data,color="blue")
+plt.show()

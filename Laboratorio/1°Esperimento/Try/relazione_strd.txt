@@ -1,0 +1,12 @@
+COME FARE UNA RELAZIONE SCIENTIFICA:
+
+
+
+
+Struttura:
+	  -Titolo
+	  -Autori
+	  -Sommario
+	  -Presentazione degli scopi della struttura dell'esperimento
+	  -Presa e analisi dati	
+	  -Conclusione

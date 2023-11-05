@@ -1,0 +1,87 @@
+
+Titolo:	Digitalizzazione di un'audio e trasmissioni dati attraverso un socket
+
+
+Autori(o.a.c.): Tosti Greta, Spera Lorenzo, Alessandro Kotchian
+
+Sommario:
+	
+	L'esperimento permette la registrazione, digitalizzazione e la riproduzione	
+	di un audio.
+	Nella seconda parte viene sviluppato un programma che permette di trasferire dati	
+	attraverso i socket.
+	
+
+Struttura esperimento: 
+	
+		     -Python3
+		     -Librerie: *soundcard
+		       		*numpy
+		       		*matplotlib
+		       		*socket
+		      		*pyqt5
+	L'esperimento è composto di 5 diversi codici che gestiscono indipendentemente le   	 varie operazioni volute:
+	-registrazione audio e creazione dei file 
+	-plot della forma d'onda dell'audio registrato
+	-riproduzione dell'audio
+	-creazione server e attesa comunicazione
+	-creazione client e comunicazione al server
+
+
+
+
+
+
+
+
+Come abbiamo fatto:
+
+Per creare il programma abbiamo innanzitutto installato python3,
+
+
+Una volta installato abbiamo aperto un terminale e abbiamo 
+inserito come comando "pip install" e il nome delle librerie,
+cosi da installarle su pyhton3 (attenzione pyqt5 è una libreria utile
+per far vedere il grafico, senno otteniamo un errore)
+Una volta impostato il tutto abbiamo scritto la linea di codice:
+
+
+"""
+LINEA CODICE
+(con spiegazione?)
+
+"""
+
+il programma cerca di registrare prendendo dei samplerate, esattamente 44100 Sa/s,
+facendo al massimo 441000 numframes 	
+o numeri di campioni massimo, in quanto la lunghezza dell'audio impostata era di 10 secondi.
+
+Il rapporto numframes/samplerate determina quanti secondi
+il programma registra.
+
+Il programma crea un file, rinominato "Record.txt", con tutti i dati
+e i valori dell'ampiezza dell'audio in ingresso.
+
+Il programma crea un grafico che mostra, in funzione del tempo, 
+la variazione dell'ampiezza dell' audio registrato.
+
+Il programma, attraverso le casse del computer, fa riascoltare	
+l'audio registrato.
+
+
+
+*Socket:
+
+Per studiare i socket abbiamo bisogno di 2 terminali:
+
+-Primo terminale agisce da server
+-Secondo terminale funziona da client
+
+e per ogni terminale bisogna avviare un programma differente.
+
+"""
+COME FUNZIONA
+
+"""
+
+

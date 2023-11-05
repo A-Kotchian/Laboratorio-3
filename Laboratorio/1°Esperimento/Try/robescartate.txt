@@ -1,0 +1,121 @@
+    
+    
+    
+    
+    
+    
+    
+       
+        
+        """
+        f=open("Record_ricevuto.txt","a")
+        for x in data:                                   1 Metodo 
+            f.write(str(data.decode())+"\n")
+        f.close()
+        i=1
+    
+
+        data=recv_one_message(s)
+        f=open("Record_ricevuto.txt","a")
+        for x in data:                                 2 Metodo
+            f.write(str(x))
+        f.close()
+        i++
+        
+        """
+        
+    
+ -----------------------------------------------------------------------
+ 
+"""
+Pezzo di codice per server:
+
+
+import socket
+
+
+host="localhost"    
+port=12345  
+
+s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((host,port)) #Cosa cerca di connettersi
+
+
+print("Host: ",host,", Port: ",port)   #nomina come si chiama l host
+
+s.listen(1)    #prova ad "ascoltare" se ce qualcuno
+conn, addr= s.accept()    #accetta e legge il nome e indirizzo
+
+print("Connected by ",addr)
+
+while True:
+
+    try:
+        data=conn.recv(1024)   
+        if not data: 
+            break
+
+        print("\nClient dice: ", data.decode()) #cosa riceviamo
+
+        conn.sendall("\nAbbiamo ricevuto il tuo messaggio :)!".encode()) #cosa rispondiamo
+        #time.sleep(0.1)   #ti permette di rallentare l azione successiva del programma
+    except socket.error:
+        print("\nC'è un errore! Mannaggia mannaggia")
+        break
+
+conn.close()
+
+
+
+
+
+
+
+Pezzo codice per client:
+
+import socket
+
+host="localhost"
+#mettere host=socket.gethostname() per ricavare nome host?
+port=12345
+
+s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((host,port))
+
+#DA QUI PUOI FARE UNA LISTA DI SENDALL E TIME.SLEEP COSI DA INVIARE TANTE COSE ( IDEA: SE FACCIAMO TIPO INPUT E SCRIVIAMO parola.encode() --> creiamo whatsapp)
+s.sendall("Ciao pipo!".encode()) #mandiamo questo, prima di encode ci metti cosa vuoi inviare
+#time.sleep(0.1)   #ti permette di rallentare l azione successiva del programma
+
+data=s.recv(1024)   #will read at most 1024 bytes, blocking if no data is waiting to be read. If you don't read all data, an other call to socket.recv won't block.
+                    #se non ce scritto niente () legge la prima stringa e si ferma
+print("Il server risponde", data.decode())
+
+s.close()
+
+
+"""
+    
+    
+    
+    
+    
+    --------------------------------------------------------------------
+    """
+        st=""
+        for x in data:
+            for i in x:
+                st=st+str(i)+' '
+        s.sendall(st.encode())
+        risposta=s.recv(1024)                          #3 metodo
+        print("Il server risponde: ", risposta.decode())
+        """
+        """
+        send_one_message(s,data)            #2 metodo 
+        """
+        
+        """
+        for i in data:
+            s.sendall(str(i).encode())
+        risposta=s.recv(1024)                          #1 metodo
+        print("Il server risponde: ", risposta.decode())
+        """
