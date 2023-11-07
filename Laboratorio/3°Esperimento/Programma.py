@@ -218,6 +218,21 @@ plt.ylabel("Accelerazione (m/s^2)")
 plt.legend() 
 plt.show()
 
+
+pesi = []
+peso_g = []
+for i in range(0,len(g)):
+	pesi.append(1/(inc_g[i]**2))
+	peso_g.append(pesi[i]*g[i])
+media_g = sum(peso_g)/sum(pesi)
+print(' media g =', round(media_g, 4),'(m/s^2)')
+
+varg = 1/np.sqrt(sum(pesi))
+print(' σ g =', round(varg,4),'(m/s^2)')
+
+
+
+
  
 file
 
