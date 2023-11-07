@@ -9,7 +9,7 @@ import scipy.odr as odr
 
 
 
-file = pd.read_csv("/home/alessandro/Desktop/Laboratorio/3°Esperimento/Pippo.csv")
+file = pd.read_csv("/home/alessandro/Laboratorio-3/Laboratorio/3°Esperimento/Pippo.csv")
 print(file.columns)
 print(file.info)
 
@@ -42,7 +42,7 @@ for i in file["X"][2:]:
     list_temp.append(float(i))
 
 for i in range(0,7):
-    temp.append(list_temp[i*180:180+i*180])
+    temp.append(list_temp[i*180:180+i*180 ])  #era 180   sara 160
 
 
 
@@ -148,7 +148,7 @@ for i in range(0,7):
     for j in range(0,len(volt[i])):
         if volt[i][j]<=c[i]:
             c[i]=volt[i][j]
-            d[i]=j+i*180
+            d[i]=j+i*180     #primo periodo 180   secondo 160
     min_V.append(c[i])
     min_t.append(d[i]*0.01)
     min_tick.append(d[i])
@@ -180,7 +180,7 @@ T=[min_t[1]-min_t[0],min_t[2]-min_t[1],min_t[3]-min_t[2],min_t[4]-min_t[3],min_t
 inc_T=[]
 
 for i in T:
-    inc_T.append(math.sqrt(pow(2*0.001,2)))
+    inc_T.append(math.sqrt(pow(0.001,2)))
 
 print("I periodi sono: ")
 for i in range(0,6):
@@ -199,9 +199,13 @@ print("\n-----------------------------\n")
 g=[0,0,0,0,0,0]
 inc_g=[0,0,0,0,0,0]
 for i in range(0,6):
-    g[i]=4*(math.pi**2)*0.79*(1/(T[i]**2))                    #l=0.79+- 0.05
+    g[i]=4*(math.pi**2)*0.787*(1/(T[i]**2))                    #l=0.79+- 0.05  #filo 2 = 0.688 +- 0.001 
+    inc_g[i]=math.sqrt(   pow(4*(math.pi**2)*0.0011*(1/(T[i]**2)),2)  +  pow((8*(math.pi**2)*0.787*inc_T[i]*(1/(T[i]**3))),2))    
+"""
+g[i]=4*(math.pi**2)*0.79*(1/(T[i]**2))                    #l=0.79+- 0.05  #filo 2 = 0.688 +- 0.001 
     inc_g[i]=math.sqrt(   pow(4*(math.pi**2)*0.05*(1/(T[i]**2)),2)  +  pow((8*(math.pi**2)*0.79*inc_T[i]*(1/(T[i]**3))),2))    
 
+"""
 
 print("I valori di g per ogni periodo sono: \n")
 for i in range(0,6):
