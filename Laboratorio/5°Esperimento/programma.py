@@ -1,153 +1,185 @@
-import soundcard as sc
 import numpy as np
+import pandas as pd
+import math 
 import matplotlib.pyplot as plt
-import matplotlib
-import socket
-import struct
-from scipy import constants, fft 
-import soundfile as sf
+import soundfile as sf 
+import scipy as sp
+from scipy import constants
+from scipy.fft import fft, fftfreq, rfft, rfftfreq, ifft
+import sys,os
 
 
-#(**)
-#Mettere il path del file es:" /home/alessandro/Laboratorio-3/Laboratorio/5°Esperimento/diapason.wav" completo senno non funziona oppure aprire VSCode/Emac/ecc... dalla cartella 
-data,samplerate=sf.read("/home/alessandro/Laboratorio-3/Laboratorio/5°Esperimento/diapason.wav",always_2d=True)  
+def antitrasformata_fourier_seno_coseno2(ampiezze, frequenze_mask, samplerate):
+    """
+    The function transforms frequency spectrum of a signal with a 
+    Fourier transormation to original signal (function of time), that is combination of cos+i*sin.
 
-#NB IL CANALE SINISTRO è data[...][0]  CANALE DESTRO è data[...][1]
-print("\nIl numero di samplerate è: ", samplerate)
-print("\n Data: \n ",data)
-print("\nIl numero di elementi nel data è: ",len(data),"\n")
+    N= lenght of Amplitude(of Fourier transformation)
+    y= value of Fourier anti-transformation
+    ampiezze=value of Amplitude of Fourier transformation
+    frequenze_mask=value of frequence of Fourier transformation
+    samplerate= frequency of cpu measurement
 
 
-datamono_sx=[]
-datamono_dx=[]
-for i in range(len(data)):
-    datamono_sx.append(data[i][0])
-    datamono_dx.append(data[i][1])
+    We take, to make faster the calculation, just values of amplitudes and frequence 
+    different from zero.
 
-#Mettere il path dove vuoi che il file si trovi :)   (Vale stesso discordo di (**) )
-sf.write("/home/alessandro/Laboratorio-3/Laboratorio/5°Esperimento/copia_suono.wav",datamono_sx,samplerate)
+    
+    y=Sum_{0}^{N} (real_part(np.array(ampiezze))*np.cos(2*np.pi*i*frequenze_mask/samplerate)   -   imag_part(np.array(ampiezze))*np.sin(2*np.pi*i*frequenze_mask/samplerate))
+    """
 
-#Grafico suono
-tempo=np.linspace(0,int(10),len(data))
-plt.plot(tempo,datamono_sx,color="blue",alpha=0.5)
-plt.plot(tempo,datamono_dx,color="orange",alpha=0.5)
-plt.rcParams["figure.autolayout"]=True
-plt.rcParams["figure.figsize"]=[7.5,3.5]
-plt.title("Grafico suono")
-plt.xlabel("Tempo[s]")
-plt.ylabel("Ampiezza audio[u.m]")
+
+    N=len(ampiezze)
+    y=np.empty(N, dtype = 'complex')
+    mask= ampiezze!=0
+
+    for i in range(0,N):    #DA METTERE len(freq) al posto di n
+        
+        y[i]=np.sum( np.real(np.array(ampiezze[mask]))*np.cos(2*np.pi*i*frequenze_mask[mask]/samplerate)-np.imag(np.array(ampiezze[mask]))*np.sin(2*np.pi*i*frequenze_mask[mask]/samplerate))
+        
+    return y/N
+
+
+
+
+
+#----------------------------------------------------------------------------------------------------
+#COLLECTING DATA AND DIVIDING LEFT AND RIGHT CHANNELS
+
+data, samplerate = sf.read(r"/home/alessandro/Laboratorio-3/Laboratorio/5°Esperimento/diapason.wav")
+time = np.linspace(0,len(data)/samplerate,len(data))
+colonna_destra = np.empty(len(data))
+colonna_sinistra = np.empty(len(data))
+for i in range(0,len(data)):
+        colonna_destra[i] = data[i][1]
+        colonna_sinistra[i]=data[i][0]
+
+
+
+#---------------------------------------------------------------------------------
+#GRAPH THE DATA
+
+b=input("\nVuoi vedere il grafico dei canali?\n(1 se si altrimenti altro)\n")
+if (int(b)==1):
+
+    fig, (ax1,ax2)= plt.subplots(1,2)
+    ax1.plot(time, colonna_sinistra, label ='Colonna sinistra', c='red')
+    ax1.legend(loc='upper right')
+    ax2.plot(time, colonna_destra, label='Colonna destra', c='blue')
+    ax2.legend(loc='upper right')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza del segnale(u.a)')
+    ax2.set_xlabel('Time(s)')
+    ax1.set_title('Andamento primo canale')
+    ax2.set_title('Andamento secondo canale')
+    plt.legend()
+    plt.show()
+
+    plt.title('Grafico delle due colonne insieme')
+    plt.plot(time, colonna_destra, label='Colonna destra', c='blue')
+    plt.plot(time, colonna_sinistra, label='Colonna sinistra', c='red', alpha=0.5)
+    plt.xlabel('Time(s)')
+    plt.ylabel('Ampiezza (u.a)')
+    plt.legend(loc='upper right')
+    plt.show()
+
+
+
+
+#--------------------------------------------------------------------------------------
+#FOURIER TRASFORMATION OF DATA OF DX CHANNEL AND GRAPHICS RESULTS
+fft_colonna_destra = fft(colonna_destra)
+n = len(fft_colonna_destra)
+freq_dx = fftfreq(n,1/samplerate)
+module_dx = pow(np.abs(fft_colonna_destra),2)
+
+
+
+
+fig,((ax1,ax2),(ax3,ax4))= plt.subplots(2,2)
+fig.set_size_inches(10, 8)
+plt.title("Trasformate Fourier")     
+
+
+#Ax1= POTENZA
+
+ax1.set_xlabel('Frequenza (hz)')
+ax1.set_ylabel( 'Potenza (u.a) ')
+ax1.set_xlim(0,5e3)
+ax1.plot(freq_dx[:len(module_dx)], module_dx[:len(module_dx)], "g-")
+ax1.set_title('Andamento coefficienti in modulo colonna dx')
+
+
+#Ax2= Reale
+
+ax2.set_xlabel('Frequenza (hz)')
+ax2.set_ylabel( 'Ampiezza(u.a) ')
+ax2.plot(freq_dx[:len(np.real(fft_colonna_destra))], np.real(fft_colonna_destra)[:len(np.real(fft_colonna_destra))], "b-")
+ax2.set_title('Andamento parte reale coefficienti colonna dx')
+ax2.set_xlim(-5e3,5e3)
+
+
+#Ax3= Immaginaria
+
+ax3.set_xlabel('Frequenza (hz)')
+ax3.set_ylabel( 'Ampiezza (u.a) ')
+ax3.plot(freq_dx[:len(np.imag(fft_colonna_destra))], np.imag(fft_colonna_destra)[:len(np.imag(fft_colonna_destra))], "m-")
+ax3.set_title('Andamento parte immaginaria coefficienti colonna dx')
+ax3.set_xlim(-5e3,5e3)
+ax4.set_visible(False) #non ti fa vedere il grafico 
+
 plt.show()
 
 
 
-t=input("\nVuoi vedere il grafico della potenza?\n1 se si altrimenti 0\n")
-if(int(t)==1):
-    #DA FARE PARTE REALE E IMMAGINARIA E MODULO !!!
+
+#-------------------------------------------------------------------------------------------------------------------
+#LET'S FIND THE NOTES 
 
 
-    print("\nLen Potenza:\n")
-    #Potenza
-    data_ff_sx=fft.fft(datamono_sx)  # n/2+1
-    data_ff_dx=fft.fft(datamono_dx)  # n/2+1
-    print(len(data_ff_sx))
-    print(len(data_ff_dx))
+# calcolo dei picchi (valore della potenza y)
+max1_dx = np.max(module_dx)
+max2_dx= np.max(module_dx[1000:50000])
+max3_dx = np.max(module_dx[2000:50000])
+
+# codice per trovare le frequenze relative
+f1_dx ,f2_dx, f3_dx = 0,0,0
+for i in range(0,len(module_dx)):
+    if module_dx[i]==max1_dx:
+        f1_dx=freq_dx[i]
+    if module_dx[i]==max2_dx:
+        f2_dx=freq_dx[i]
+    if module_dx[i]==max3_dx:
+        f3_dx=freq_dx[i]
+
+print("Modulo del canale destro: {:} \nFrequenza canale destro: {:}".format(len(module_dx), len(freq_dx)))
+print("F1: {:}\nF2: {:}\nF3: {:}\n".format(f1_dx, f2_dx, f3_dx))
+
+
+plt.figure(figsize=[8,8])
+plt.title('Frequenze in corrispondenza dei picchi')
+plt.plot(freq_dx, module_dx, label='Potenza dx',c='royalblue')
+plt.xlabel('Frequenza(hz)')
+plt.ylabel('Ampiezza(u.a)')
+plt.axvline(-f1_dx, linestyle='--', color='limegreen',label='f1=110 Hz')
+plt.axvline(-f2_dx,linestyle='--', color='orange',label='f2=880 Hz')
+plt.axvline(-f3_dx,linestyle='--', color='violet',label='f3=1980 Hz')
+plt.xlim(0,2500)
+plt.legend(loc='upper right')
+plt.show()
 
 
 
-    #Reale
-    print("\nLen Reale:\n")
-    real_data_ff_sx=np.real(fft.fft(datamono_sx))  # n/2+1
-    real_data_ff_dx=np.real(fft.fft(datamono_dx))  # n/2+1
-    print(len(real_data_ff_sx))
-    print(len(real_data_ff_dx))
-
-    #Immaginaria
-    print("\nLen Immaginaria:\n")
-    imm_data_ff_sx=np.imag(fft.fft(datamono_sx))  # n/2+1
-    imm_data_ff_dx=np.imag(fft.fft(datamono_dx))  # n/2+1
-    print(len(imm_data_ff_sx))
-    print(len(imm_data_ff_dx))
-
-
-    """ 
-    Due metodi per la frequenza:
+#--------------------------------------------------------------------------------------
+#THIS PART LOOKS LIKE BLOODY HELL
+b=input("Vuoi vedere tutte le note possibili?\n(1 se si altrimenti altro)\n")
+if int(b)==1:
+     #NOTA:
     
-    1°)
-
-
-    freq_ff=0.5*fft.rfftfreq(data_ff.size, 1.0/samplerate)
-
-    this is how Stefano Germani did: the 0.5 he called "nyquist"
-    Unlike fftfreq (but like scipy.fftpack.rfftfreq) the Nyquist frequency component is considered to be positive.
-    
-    2°)
-    """
-
-    freq_ff = fft.fftfreq(len(datamono_sx), 1.0/samplerate)
-    
-
-    print("\n Data fourier : \n ",data_ff_sx)
-    print("\nIl numero di elementi nel data fourier è: ",len(data_ff_sx),"\n")
-    print("\n La frequenza: \n ",freq_ff)
-    print("\nIl numero di elementi nel frequenza è: ",len(freq_ff),"\n")
-    
-    """
-    plt.figure(20)
-    fig = plt.gcf()
-    fig.set_size_inches(10, 8)
-    plt. title("FFT" )
-    plt.xlabel('Frequenza (hz)')
-    plt.ylabel( 'Ampiezza (parte reale) (u.a) ')
-    plt.plot(freq_ff[:len(data_ff_sx)], data_ff_sx[:len(data_ff_sx)].real, "go--")
-    #plt.plot(freq_ff[:len(data_ff_dx)], data_ff_dx[:len(data_ff_dx)].imag, "ro--")
-    plt.show()
-    """
-    
-
-         
-    
-      
-    fig,((ax1,ax2),(ax3,ax4))= plt.subplots(2,2)
-    fig.set_size_inches(10, 8)
-    plt.title("Trasformate Fourier")     
- 
-
-
-    #----------------------------------------------------------------
-    #Ax1= POTENZA
-
-    ax1.set_xlabel('Frequenza (hz)')
-    ax1.set_ylabel( 'Potenza (u.a) ')
-
-    ax1.plot(freq_ff[:len(data_ff_sx)], data_ff_sx[:len(data_ff_sx)], "g-")
-
-    #----------------------------------------------------------------
-    #Ax2= Reale
-
-    ax2.set_xlabel('Frequenza (hz)')
-    ax2.set_ylabel( 'Ampiezza (parte reale) (u.a) ')
-
-    ax2.plot(freq_ff[:len(real_data_ff_sx)], real_data_ff_sx[:len(real_data_ff_sx)], "b-")
-    #----------------------------------------------------------------
-    #Ax3= Immaginaria
-
-    ax3.set_xlabel('Frequenza (hz)')
-    ax3.set_ylabel( 'Ampiezza (parte immaginaria) (u.a) ')
-    ax3.plot(freq_ff[:len(imm_data_ff_sx)], imm_data_ff_sx[:len(imm_data_ff_sx)], "m-")
-    
-    
-    ax4.set_visible(False) #non ti fa vedere il grafico 
-
-    plt.show()
-
-    #----------------------------------------------------------------
-    print("\nRispetto alle note:\n")
-    
-    plt.plot(freq_ff[:len(data_ff_sx)], data_ff_sx[:len(data_ff_sx)], "g-")
-    #NOTA:
-    
-
-
+    plt.figure(figsize=[8,8])
+    plt.title('Frequenze in corrispondenza dei picchi')
+    plt.xlabel('Frequenza(hz)')
+    plt.ylabel('Ampiezza(u.a)')
     #0________________________________________________________________
     #do0
     plt.text(16.35,0,'Do_0',rotation=90)
@@ -211,8 +243,6 @@ if(int(t)==1):
 
     #2________________________________________________________________
 
-
-
     # do2
     plt.text(65.41, 0, 'Do_2', rotation=90)
     plt.axvline(x=65.41, linestyle="--")
@@ -240,7 +270,6 @@ if(int(t)==1):
     # si2
     plt.text(123.47, 0, 'Si_2', rotation=90)
     plt.axvline(x=123.47, linestyle="--")
-
 
     #3________________________________________________________________
     # do3
@@ -270,7 +299,6 @@ if(int(t)==1):
     # si3
     plt.text(246.94, 0, 'Si_3', rotation=90)
     plt.axvline(x=246.94, linestyle="--")
-
 
     #4________________________________________________________________
     #do4
@@ -360,15 +388,178 @@ if(int(t)==1):
     plt.text(1975.53,0,'Si_6',rotation=90)
     plt.axvline(x=1975.53, linestyle="--")
 
-    
-    
-    
-    
-    
     #Grafico
+    plt.plot(freq_dx, module_dx, label='Potenza dx',c='g')
     plt.rcParams["figure.autolayout"]=True
     plt.title("Potenza rispetto note")
     plt.xlim(0,2500)
-    plt.xlabel("frequenza[Hz]")
-    plt.ylabel("Potenza[u.m]")
     plt.show()
+
+
+#--------------------------------------------------------------------------------------
+#ANTITRASFORMATION FOURIER TAKING DIFFERENTS MASKS 
+b=input("Vuoi vedere la ricorstruzione con i picchi?\n(1 se si altrimenti altro)\n")
+if int(b)==1:
+    fig,((ax1,ax2),(ax3,ax4))= plt.subplots(2,2)
+    fig.set_size_inches(10, 8)
+    plt.title("Segnali filtrati") 
+
+    #---------------------------------------
+    #ricostruzione con primo picco 
+    maschera = module_dx == max1_dx
+    #fft_dx_filtrata = fft_colonna_destra*maschera
+
+    # invertiamo il segnale
+
+    dx_filtrato1 = ifft(fft_colonna_destra*maschera)
+    ax1.set_title('Segnale dx filtrato primo picco')
+    ax1.plot(time, dx_filtrato1, label='Segnale filtrato dx', c ='indianred')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza(u.a)')
+    ax1.set_xlim(0,0.3)
+
+
+    #---------------------------------------
+    #ricostruzione con primi due picchi 
+    maschera2 = np.logical_or(module_dx == max1_dx,module_dx==max2_dx)
+    #fft_dx_filtrata = fft_colonna_destra*maschera
+
+    # invertiamo il segnale
+
+    dx_filtrato2 = ifft(fft_colonna_destra*maschera2)
+    ax2.set_title('Segnale dx primi due picchi')
+    ax2.plot(time, dx_filtrato2, label='Segnale filtrato dx', c ='navy')
+    ax2.set_xlabel('Time(s)')
+    ax2.set_ylabel('Ampiezza(u.a)')
+    ax2.set_xlim(0,0.3)
+
+
+    #----------------------------------------
+    #ricostruzione con primi due picchi 
+    maschera3 = np.logical_or(np.logical_or(module_dx == max1_dx, module_dx==max2_dx), module_dx==max3_dx)
+    #fft_dx_filtrata = fft_colonna_destra*maschera
+
+    # invertiamo il segnale
+
+    dx_filtrato3 = ifft(fft_colonna_destra*maschera3)
+    ax3.set_title('Segnale dx primi tre picchi')
+    ax3.plot(time, dx_filtrato3, label='Segnale filtrato dx', c ='forestgreen')
+    ax3.set_xlabel('Time(s)')
+    ax3.set_ylabel('Ampiezza(u.a)')
+    ax3.set_xlim(0,0.3)
+    
+    maschera4=np.absolute(fft_colonna_destra) > 2500
+    dx_filtrato4 = ifft(fft_colonna_destra*maschera4)
+    ax4.set_title('Segnale dx con range picchi ')
+    ax4.plot(time, dx_filtrato4, label='Segnale filtrato dx', c ='khaki')
+    ax4.set_xlabel('Time(s)')
+    ax4.set_ylabel('Ampiezza(u.a)')
+    ax4.set_xlim(0,0.3)
+
+
+    plt.show()
+
+    #PARTE FILTRATA
+    fig, ((ax1,ax2),(ax3,ax4))= plt.subplots(2,2)
+    ax1.plot(time, dx_filtrato1, label ='Colonna sinistra', c='indianred')
+    ax1.legend(loc='upper right')
+    ax2.plot(time, dx_filtrato2, label='Colonna destra', c='navy')
+    ax2.legend(loc='upper right')
+    ax3.plot(time, dx_filtrato3, label='Colonna destra', c='forestgreen')
+    ax4.plot(time, dx_filtrato4, label='Colonna destra', c='khaki')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza del segnale(u.a)')
+    ax2.set_xlabel('Time(s)')
+    ax1.set_title('Andamento primo canale')
+    ax2.set_title('Andamento secondo canale')
+    #ax3.set_xlim(0, 0.2)
+    #ax2.set_xlim(0, 0.2)
+    #ax1.set_xlim(0, 0.2)
+    ax4.set_xlim(0,1.45) #SENNO STI CAZZI DI BATTIMENTI TIRANO IN SU 
+    plt.legend()
+    plt.show()
+    
+    
+    
+    print("\n|------------------------------------------------------------|\n")
+    print("\nConfronto tra funzione ifft e antitrasformata programmata\n")
+
+
+    dx_fil1 = antitrasformata_fourier_seno_coseno2(fft_colonna_destra*maschera,freq_dx, samplerate)  #mettere gia con la frequenza la mask 
+    dx_fil2 = antitrasformata_fourier_seno_coseno2(fft_colonna_destra*maschera2,freq_dx, samplerate)  #mettere gia con la frequenza la mask 
+    dx_fil3 = antitrasformata_fourier_seno_coseno2(fft_colonna_destra*maschera3,freq_dx, samplerate)  #mettere gia con la frequenza la mask 
+    dx_fil4 = antitrasformata_fourier_seno_coseno2(fft_colonna_destra*maschera4,freq_dx, samplerate)  #mettere gia con la frequenza la mask 
+
+
+
+    #CONFRONTO 1 IFFT-PROGRAMMATA
+    fig, (ax1,ax2)= plt.subplots(1,2)
+    ax1.plot(time, dx_filtrato1, label ='Colonna sinistra', c='indianred')
+    ax1.legend(loc='upper right')
+    ax2.plot(time, dx_fil1, label='Colonna destra', c='navy')
+    ax2.legend(loc='upper right')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza del segnale(u.a)')
+    ax2.set_xlabel('Time(s)')
+    ax1.set_title('Segnale dx filtrato primo picco con ifft')
+    ax2.set_title('Segnale dx filtrato primo picco con metodo sin e cos')
+    #ax1.set_xlim(0, 0.2) 
+    plt.legend()
+    plt.show()
+
+
+    #CONFRONTO 2 IFFT-PROGRAMMATA
+    fig, (ax1,ax2)= plt.subplots(1,2)
+    ax1.plot(time, dx_filtrato2, label ='IFFT', c='indianred')
+    ax1.legend(loc='upper right')
+    ax2.plot(time, dx_fil2, label='Programmata', c='navy')
+    ax2.legend(loc='upper right')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza del segnale(u.a)')
+    ax2.set_xlabel('Time(s)')
+    ax1.set_title('Segnale dx filtrato primi 2 picchi con ifft')
+    ax2.set_title('Segnale dx filtrato primi 2 picchi con metodo sin e cos')
+    #ax1.set_xlim(0, 0.2) 
+    plt.legend()
+    plt.show()
+
+
+    #CONFRONTO 3 IFFT-PROGRAMMATA
+    fig, (ax1,ax2)= plt.subplots(1,2)
+    ax1.plot(time, dx_filtrato3, label ='IFFT', c='indianred')
+    ax1.legend(loc='upper right')
+    ax2.plot(time, dx_fil3, label='Programmata', c='navy')
+    ax2.legend(loc='upper right')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza del segnale(u.a)')
+    ax2.set_xlabel('Time(s)')
+    ax1.set_title('Segnale dx filtrato primi 3 picchi con ifft')
+    ax2.set_title('Segnale dx filtrato primi 3 picchi con metodo sin e cos')
+    #ax1.set_xlim(0, 0.2) 
+    plt.legend()
+    plt.show()
+
+
+
+    #CONFRONTO 4 IFFT-PROGRAMMATA
+    fig, (ax1,ax2)= plt.subplots(1,2)
+    ax1.plot(time, dx_filtrato4, label ='IFFT', c='indianred')
+    ax1.legend(loc='upper right')
+    ax2.plot(time, dx_fil4, label='Programmata', c='navy')
+    ax2.legend(loc='upper right')
+    ax1.set_xlabel('Time(s)')
+    ax1.set_ylabel('Ampiezza del segnale(u.a)')
+    ax2.set_xlabel('Time(s)')
+    ax1.set_title('Segnale dx filtrato primi 3 picchi con banda con ifft')
+    ax2.set_title('Segnale dx filtrato primi 3 picchi con banda con metodo sin e cos')
+    #ax1.set_xlim(0, 0.2) 
+    plt.legend()
+    plt.show()
+
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#LET'S WRITE AUDIO FILE .WAV
+sf.write(r"C:\Users\diavo\OneDrive\Desktop\Università\Anno 3\Laboratorio 3\Laboratorio-3\Laboratorio\5°Esperimento\copia_suono.wav",dx_fil1,samplerate)
+
+
