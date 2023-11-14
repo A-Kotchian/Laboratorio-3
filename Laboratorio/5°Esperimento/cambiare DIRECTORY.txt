@@ -1,2 +1,20 @@
 pulita_semplice= mi5?
 pulita_media= si4? 
+
+
+
+
+"""
+def antitrasformata_fourier_seno_coseno(ampiezze, frequenze_mask):
+    N=len(ampiezze)
+    y=np.empty(0)
+    for i in range(0,len(frequenze_mask)):    #DA METTERE len(freq) al posto di n
+        if frequenze_mask[i]==0:
+            np.append(y,ampiezze[i])
+        else:
+            np.append(y, np.sum(ampiezze[i]*(np.exp((np.pi *np.imag(1)*i freq[k]*2)/N))))
+    return y
+
+#Parte che scrive in audio 
+sf.write(r"C:\Users\diavo\OneDrive\Desktop\Università\Anno 3\Laboratorio 3\Laboratorio-3\Laboratorio\5°Esperimento\copia_suono.wav",segnale_di_partenza_dx,samplerate)
+"""
